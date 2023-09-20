@@ -1,2 +1,0 @@
-python main_nerf.py data/nerf_llff_data/fern/ --workspace ./log/spaseview/llff/fern/ngp -O --iters 3000
-python main_nerf.py data/nerf_llff_data/fern/ --workspace ./log/spaseview/llff/fern/ngp -O --iters 3000

@@ -1037,15 +1037,16 @@ class Trainer(object):
 
             self.optimizer.zero_grad()
 
-            # for test ibr now, replace soon
-            with torch.no_grad():
-                # ibr loss
-                ibr_out = self.ibr_teacher_model.eval(data)
-                ibr_outimage = ibr_out["outputs_fine"]["rgb"].cpu().numpy()
-                ibr_outimage = (255 * np.clip(ibr_outimage, a_min=0, a_max=1.0)).astype(
-                    np.uint8
-                )
-                imageio.imwrite("ibr_fine.png", ibr_outimage)
+            if self.use_ibr_teacher:
+                # for test ibr now, replace soon
+                with torch.no_grad():
+                    # ibr loss
+                    ibr_out = self.ibr_teacher_model.eval(data)
+                    ibr_outimage = ibr_out["outputs_fine"]["rgb"].cpu().numpy()
+                    ibr_outimage = (255 * np.clip(ibr_outimage, a_min=0, a_max=1.0)).astype(
+                        np.uint8
+                    )
+                    imageio.imwrite("ibr_fine.png", ibr_outimage)
             with torch.cuda.amp.autocast(enabled=self.fp16):
                 preds, truths, loss = self.train_step(data)
 
