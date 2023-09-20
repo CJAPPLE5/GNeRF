@@ -163,6 +163,14 @@ if __name__ == "__main__":
         help="<0 uses no rand pose, =0 only uses rand pose, >0 sample one rand pose every $ known poses",
     )
 
+    # extra_loss
+    parser.add_argument(
+        "--lambda_ibr_rgb_loss",
+        type=float,
+        default=0.0,
+        help=""
+    )
+
     parser = add_argument(parser)
 
     opt = parser.parse_args()

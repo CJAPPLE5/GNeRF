@@ -1054,7 +1054,7 @@ class Trainer(object):
                 with torch.cuda.amp.autocast(enabled=self.fp16):
                     unseen_preds, unseen_truths, unseen_loss = self.train_step(unseen_data)
 
-                loss = loss + unseen_loss
+                loss = loss + 0.1*unseen_loss
                 
             self.scaler.scale(loss).backward()
             self.scaler.step(self.optimizer)
