@@ -7,7 +7,6 @@ from nerf.utils import *
 
 from functools import partial
 from loss import huber_loss
-from IBRNet.config import add_argument
 from nerf.ibr_teacher import add_argument
 
 # torch.autograd.set_detect_anomaly(True)

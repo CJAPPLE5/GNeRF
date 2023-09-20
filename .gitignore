@@ -16,3 +16,7 @@ dnerf/network_basis_perpoint.py
 
 **neus*
 neus/
+
+
+IBRNet/*/*.pth
+*.zip
