@@ -190,8 +190,10 @@ if __name__ == "__main__":
         test_ids = all_ids[:: opt.hold]
         train_ids = np.array([i for i in all_ids if i not in test_ids])
     else:
-        train_ids = all_ids[random.sample(range(len(all_ids)), train_num)]
-        test_ids = np.array([i for i in all_ids if i not in train_ids])
+        test_ids = all_ids[:: opt.hold]
+        left_ids = np.array([i for i in all_ids if i not in test_ids])
+        train_ids = left_ids[::(len(left_ids)//train_num)]
+        
     frames_train = []
     frames_test = []
     for i in train_ids:

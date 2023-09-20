@@ -22,6 +22,22 @@
                 "--config",
                 "IBRNet/configs/eval_llff.txt"
             ]
+        },
+        {
+            "name": "train llff sparse room",
+            "type": "python",
+            "request": "launch",
+            "program": "main_nerf.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "data/nerf_llff_data/room/",
+                "--workspace",
+                "./log/spaseview/llff/room/view_8_origin/ngp",
+                "-O",
+                "--iters",
+                "2500",
+            ]
         }
     ]
 }

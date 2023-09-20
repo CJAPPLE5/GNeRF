@@ -430,7 +430,7 @@ class NeRFDataset:
             "H": self.H,
             "W": self.W,
             "rays_o": rays["rays_o"],
-            "rays_d": rays["rays_d"],
+            "rays_d": rays["rays_d"]
         }
 
         if self.images is not None:
@@ -448,14 +448,24 @@ class NeRFDataset:
             results["inds_coarse"] = rays["inds_coarse"]
 
         # load ibr data
-        if self.use_ibr:
+        if self.use_ibr and self.training:
             results["rgb"] = results["images"]
             results["src_rgbs"] = self.images.unsqueeze(0).to(torch.float)
-            pose0 = self.poses[0]
+            pose0 = self.poses[index[0]]
             pose1 = self.poses[(index[0] + 1) % (self.poses.shape[0])]
             unseen_pose = torch.from_numpy(
                 slerp_pose(pose0.cpu().numpy(), pose1.cpu().numpy(), 0.5)
             ).to(self.device)
+            unseen_rays = get_rays(
+                unseen_pose[None,...],
+                self.intrinsics,
+                self.H,
+                self.W,
+                self.num_rays,
+            )
+            results["rays_o_unseen"] = unseen_rays["rays_o"]
+            results["rays_d_unseen"] = unseen_rays["rays_d"]
+            results["inds"] = unseen_rays["inds"]
             results["camera"] = (
                 torch.concat(
                     [

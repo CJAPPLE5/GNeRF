@@ -2,7 +2,7 @@
 
 EXP_NAME="supervise_pixel"
 NETWORK="ngp"
-TRAIN_NUM=8
+TRAIN_NUM=9
 DATASET="nerf_llff_data"
 DATA_BASE="data/${DATASET}"
 TEST_SCENE="room"
@@ -15,10 +15,10 @@ RESUME=0
 python scripts/llff2nerf.py ${DATA_BASE}/${TEST_SCENE} --images images_${DOWNSCALE} --downscale ${DOWNSCALE} --train_num ${TRAIN_NUM}
 
 if [ ${RESUME} -eq 0 ]; then  
-    rm -r ./log/spaseview/${EXP_NAME}/${DATASET}/${TEST_SCENE}/view_${TRAIN_NUM}/${NETWORK}
+    rm -r ./log/spaseview/${EXP_NAME}/${DATASET}/${TEST_SCENE}/view_${TRAIN_NUM}_ibr/${NETWORK}
 fi
 
-python main_nerf.py ${DATA_BASE}/${TEST_SCENE} --workspace ./log/spaseview/${EXP_NAME}/${DATASET}/${TEST_SCENE}/view_${TRAIN_NUM}/${NETWORK} -O --iters 2500 --num_rays 4096
+python main_nerf.py ${DATA_BASE}/${TEST_SCENE} --workspace ./log/spaseview/${EXP_NAME}/${DATASET}/${TEST_SCENE}/view_${TRAIN_NUM}_ibr/${NETWORK} -O --iters 2500 --num_rays 4096 --use_ibr
 
 # 测试多场景
 

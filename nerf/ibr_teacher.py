@@ -260,7 +260,11 @@ class IBRTeacher(object):
         Returns:
             _type_: _description_
         """
-        ray_sampler = RaySamplerSingleImage(data, device="cuda:0")
+        if "inds" in data:
+            inds = data["inds"]
+        else:
+            inds = None
+        ray_sampler = RaySamplerSingleImage(data, device="cuda:0", inds=inds)
         ray_batch = ray_sampler.get_all()
 
         ret = render_single_image(

@@ -271,7 +271,7 @@ if __name__ == "__main__":
             scheduler_update_every_step=True,
             metrics=metrics,
             use_checkpoint=opt.ckpt,
-            eval_interval=50,
+            eval_interval=30,
             use_ibr_teacher=opt.use_ibr,
         )
 

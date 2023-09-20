@@ -137,11 +137,9 @@ def get_rays(poses, intrinsics, H, W, N=-1, error_map=None, patch_size=1):
         i = torch.gather(i, -1, inds)
         j = torch.gather(j, -1, inds)
 
-        results["inds"] = inds
-
     else:
         inds = torch.arange(H * W, device=device).expand([B, H * W])
-
+    results["inds"] = inds
     zs = torch.ones_like(i)
     xs = (i - cx) / fx * zs
     ys = (j - cy) / fy * zs
@@ -1037,19 +1035,27 @@ class Trainer(object):
 
             self.optimizer.zero_grad()
 
+            with torch.cuda.amp.autocast(enabled=self.fp16):
+                preds, truths, loss = self.train_step(data)
+                
             if self.use_ibr_teacher:
                 # for test ibr now, replace soon
                 with torch.no_grad():
                     # ibr loss
                     ibr_out = self.ibr_teacher_model.eval(data)
-                    ibr_outimage = ibr_out["outputs_fine"]["rgb"].cpu().numpy()
-                    ibr_outimage = (255 * np.clip(ibr_outimage, a_min=0, a_max=1.0)).astype(
-                        np.uint8
-                    )
-                    imageio.imwrite("ibr_fine.png", ibr_outimage)
-            with torch.cuda.amp.autocast(enabled=self.fp16):
-                preds, truths, loss = self.train_step(data)
+                    ibr_outimage = ibr_out["outputs_fine"]["rgb"].reshape(1,-1,3)
+                unseen_data = {}
+                unseen_data["rays_o"] = data["rays_o_unseen"]
+                unseen_data["rays_d"] = data["rays_d_unseen"]
+                unseen_data["H"] = data["H"]
+                unseen_data["W"] = data["W"]
+                unseen_data["images"] = ibr_outimage
+                
+                with torch.cuda.amp.autocast(enabled=self.fp16):
+                    unseen_preds, unseen_truths, unseen_loss = self.train_step(unseen_data)
 
+                loss = loss + unseen_loss
+                
             self.scaler.scale(loss).backward()
             self.scaler.step(self.optimizer)
             self.scaler.update()
