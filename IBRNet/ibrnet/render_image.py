@@ -18,19 +18,21 @@ from collections import OrderedDict
 from ibrnet.render_ray import render_rays
 
 
-def render_single_image(ray_sampler,
-                        ray_batch,
-                        model,
-                        projector,
-                        chunk_size,
-                        N_samples,
-                        inv_uniform=False,
-                        N_importance=0,
-                        det=False,
-                        white_bkgd=False,
-                        render_stride=1,
-                        featmaps=None):
-    '''
+def render_single_image(
+    ray_sampler,
+    ray_batch,
+    model,
+    projector,
+    chunk_size,
+    N_samples,
+    inv_uniform=False,
+    N_importance=0,
+    det=False,
+    white_bkgd=False,
+    render_stride=1,
+    featmaps=None,
+):
+    """
     :param ray_sampler: RaySamplingSingleImage for this view
     :param model:  {'net_coarse': , 'net_fine': , ...}
     :param chunk_size: number of rays in a chunk
@@ -38,70 +40,78 @@ def render_single_image(ray_sampler,
     :param inv_uniform: if True, uniformly sample inverse depth for coarse model
     :param N_importance: additional samples along each ray produced by importance sampling (for fine model)
     :return: {'outputs_coarse': {'rgb': numpy, 'depth': numpy, ...}, 'outputs_fine': {}}
-    '''
+    """
 
-    all_ret = OrderedDict([('outputs_coarse', OrderedDict()),
-                           ('outputs_fine', OrderedDict())])
+    all_ret = OrderedDict(
+        [("outputs_coarse", OrderedDict()), ("outputs_fine", OrderedDict())]
+    )
 
-    N_rays = ray_batch['ray_o'].shape[0]
+    N_rays = ray_batch["ray_o"].shape[0]
 
     for i in range(0, N_rays, chunk_size):
         chunk = OrderedDict()
         for k in ray_batch:
-            if k in ['camera', 'depth_range', 'src_rgbs', 'src_cameras']:
+            if k in ["camera", "depth_range", "src_rgbs", "src_cameras"]:
                 chunk[k] = ray_batch[k]
             elif ray_batch[k] is not None:
-                chunk[k] = ray_batch[k][i:i+chunk_size]
+                chunk[k] = ray_batch[k][i : i + chunk_size]
             else:
                 chunk[k] = None
 
-        ret = render_rays(chunk, model, featmaps,
-                          projector=projector,
-                          N_samples=N_samples,
-                          inv_uniform=inv_uniform,
-                          N_importance=N_importance,
-                          det=det,
-                          white_bkgd=white_bkgd)
+        ret = render_rays(
+            chunk,
+            model,
+            featmaps,
+            projector=projector,
+            N_samples=N_samples,
+            inv_uniform=inv_uniform,
+            N_importance=N_importance,
+            det=det,
+            white_bkgd=white_bkgd,
+        )
 
         # handle both coarse and fine outputs
         # cache chunk results on cpu
         if i == 0:
-            for k in ret['outputs_coarse']:
-                all_ret['outputs_coarse'][k] = []
+            for k in ret["outputs_coarse"]:
+                all_ret["outputs_coarse"][k] = []
 
-            if ret['outputs_fine'] is None:
-                all_ret['outputs_fine'] = None
+            if ret["outputs_fine"] is None:
+                all_ret["outputs_fine"] = None
             else:
-                for k in ret['outputs_fine']:
-                    all_ret['outputs_fine'][k] = []
+                for k in ret["outputs_fine"]:
+                    all_ret["outputs_fine"][k] = []
 
-        for k in ret['outputs_coarse']:
-            all_ret['outputs_coarse'][k].append(ret['outputs_coarse'][k].cpu())
+        for k in ret["outputs_coarse"]:
+            all_ret["outputs_coarse"][k].append(ret["outputs_coarse"][k])
 
-        if ret['outputs_fine'] is not None:
-            for k in ret['outputs_fine']:
-                all_ret['outputs_fine'][k].append(ret['outputs_fine'][k].cpu())
+        if ret["outputs_fine"] is not None:
+            for k in ret["outputs_fine"]:
+                all_ret["outputs_fine"][k].append(ret["outputs_fine"][k])
 
-    rgb_strided = torch.ones(ray_sampler.H, ray_sampler.W, 3)[::render_stride, ::render_stride, :]
+    rgb_strided = torch.ones(ray_sampler.H, ray_sampler.W, 3)[
+        ::render_stride, ::render_stride, :
+    ]
+    if N_rays < (rgb_strided.shape[0] * rgb_strided.shape[1]):
+        rgb_strided = torch.ones(1, N_rays, 3)
     # merge chunk results and reshape
-    for k in all_ret['outputs_coarse']:
-        if k == 'random_sigma':
+    for k in all_ret["outputs_coarse"]:
+        if k == "random_sigma":
             continue
-        tmp = torch.cat(all_ret['outputs_coarse'][k], dim=0).reshape((rgb_strided.shape[0],
-                                                                      rgb_strided.shape[1], -1))
-        all_ret['outputs_coarse'][k] = tmp.squeeze()
+        tmp = torch.cat(all_ret["outputs_coarse"][k], dim=0).reshape(
+            (rgb_strided.shape[0], rgb_strided.shape[1], -1)
+        )
+        all_ret["outputs_coarse"][k] = tmp.squeeze()
 
-    all_ret['outputs_coarse']['rgb'][all_ret['outputs_coarse']['mask'] == 0] = 1.
-    if all_ret['outputs_fine'] is not None:
-        for k in all_ret['outputs_fine']:
-            if k == 'random_sigma':
+    all_ret["outputs_coarse"]["rgb"][all_ret["outputs_coarse"]["mask"] == 0] = 1.0
+    if all_ret["outputs_fine"] is not None:
+        for k in all_ret["outputs_fine"]:
+            if k == "random_sigma":
                 continue
-            tmp = torch.cat(all_ret['outputs_fine'][k], dim=0).reshape((rgb_strided.shape[0],
-                                                                        rgb_strided.shape[1], -1))
+            tmp = torch.cat(all_ret["outputs_fine"][k], dim=0).reshape(
+                (rgb_strided.shape[0], rgb_strided.shape[1], -1)
+            )
 
-            all_ret['outputs_fine'][k] = tmp.squeeze()
+            all_ret["outputs_fine"][k] = tmp.squeeze()
 
     return all_ret
-
-
-
