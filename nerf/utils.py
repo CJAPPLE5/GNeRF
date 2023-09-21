@@ -802,7 +802,8 @@ class Trainer(object):
         self.evaluate_one_epoch(loader, name)
         self.use_tensorboardX = use_tensorboardX
 
-    def test(self, loader, save_path=None, name=None, write_video=True):
+    def test(self, loader, train_loader=None, save_path=None, name=None, write_video=True):
+        self.ibr_teacher_model.init(train_loader)
         if save_path is None:
             save_path = os.path.join(self.workspace, "results")
 
@@ -825,8 +826,26 @@ class Trainer(object):
 
         with torch.no_grad():
             for i, data in enumerate(loader):
+                ibr_out = self.ibr_teacher_model.eval(data)
+                outs = ibr_out['outputs_fine']
+                rgb = outs['rgb'] # h w 3
+                depth = outs['depth'] # h w 
+                alpha = outs['alpha'] # h w s
+                rgb = rgb.detach().cpu().numpy()
+                rgb = (rgb * 255).astype(np.uint8)
+
+                depth = depth.detach().cpu().numpy()
+                depth = (depth * 255).astype(np.uint8)
+                cv2.imwrite(
+                    os.path.join(save_path, f"{name}_{i:04d}_rgb_ibr.png"),
+                    cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
+                )
+                cv2.imwrite(
+                    os.path.join(save_path, f"{name}_{i:04d}_depth_ibr.png"), depth
+                )
                 with torch.cuda.amp.autocast(enabled=self.fp16):
                     preds, preds_depth = self.test_step(data)
+                    # ibr loss
 
                 if self.opt.color_space == "linear":
                     preds = linear_to_srgb(preds)

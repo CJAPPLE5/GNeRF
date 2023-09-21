@@ -430,7 +430,15 @@ class NeRFDataset:
             "H": self.H,
             "W": self.W,
             "rays_o": rays["rays_o"],
-            "rays_d": rays["rays_d"]
+            "rays_d": rays["rays_d"],
+            "camera": torch.concat(
+                [
+                    self.hw,
+                    self.intrinsic_m.reshape(-1),
+                    poses.reshape(-1),
+                ]
+            ).unsqueeze(0).to(self.device),
+            "rgb_path": "wdnmd_path"
         }
 
         if self.images is not None:

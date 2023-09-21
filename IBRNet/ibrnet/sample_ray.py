@@ -101,7 +101,7 @@ class RaySamplerSingleImage(object):
             v = v.to(inds.device)
             u = torch.gather(u, 0, inds.reshape(-1))
             v = torch.gather(v, 0, inds.reshape(-1))
-        pixels = torch.stack((u, v, torch.ones_like(u)), axis=0)  # (3, H*W)
+        pixels = torch.stack((u, v, torch.ones_like(u)), axis=0).to(self.device)
         batched_pixels = pixels.unsqueeze(0).repeat(self.batch_size, 1, 1)
 
         rays_d = (

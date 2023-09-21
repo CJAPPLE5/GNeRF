@@ -3,7 +3,8 @@ from IBRNet.ibrnet.model import IBRNetModel
 from IBRNet.ibrnet.projection import Projector
 from IBRNet.ibrnet.sample_ray import RaySamplerSingleImage
 from IBRNet.ibrnet.render_image import render_single_image
-
+import torch
+from einops import rearrange, repeat
 
 def add_argument(parser):
     # ibr
@@ -234,17 +235,39 @@ def add_argument(parser):
     )
     return parser
 
-
 class IBRTeacher(object):
     def __init__(self, args):
         self.network = IBRNetModel(args, load_scheduler=False, load_opt=False)
         self.network.switch_to_eval()
-        self.projector = Projector(device="cuda:0")
+        self.device = "cuda"
+        self.projector = Projector(self.device)
         self.featuremaps = None
         self.args = args
 
     def init_featuremaps(self, rgb):
         self.featuremaps = self.network.feature_net(rgb)
+
+    def init(self, train_loader):
+        data = train_loader._data
+        src_rgbs = data.images.float() 
+        src_rgbs = rearrange(src_rgbs, 'n h w c -> n c h w')
+        self.src_cameras = []
+        for i in range(data.poses.shape[0]):
+            self.src_cameras.append(
+                torch.concat(
+                    [
+                        data.hw,
+                        data.intrinsic_m.reshape(-1),
+                        data.poses[i].reshape(-1),
+                    ]
+                )
+            )
+        self.src_cameras = torch.stack(self.src_cameras).to(self.device).unsqueeze(0)
+        self.depth_range = torch.tensor([[0.1, 6.0]]).to(self.device)
+        self.src_rgbs = rearrange(src_rgbs, 'n c h w -> 1 n h w c')
+        self.featuremaps = self.network.feature_net(src_rgbs)
+        print("init ibr teacher done")
+
 
     def eval(self, data):
         """_summary_
@@ -264,9 +287,11 @@ class IBRTeacher(object):
             inds = data["inds"]
         else:
             inds = None
-        ray_sampler = RaySamplerSingleImage(data, device="cuda:0", inds=inds)
+        data["depth_range"] = self.depth_range
+        data["src_rgbs"] = self.src_rgbs
+        data["src_cameras"] = self.src_cameras
+        ray_sampler = RaySamplerSingleImage(data, device=self.device, inds=inds)
         ray_batch = ray_sampler.get_all()
-
         ret = render_single_image(
             ray_sampler=ray_sampler,
             ray_batch=ray_batch,
