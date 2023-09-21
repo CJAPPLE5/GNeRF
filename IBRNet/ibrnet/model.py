@@ -30,6 +30,7 @@ def de_parallel(model):
 class IBRNetModel(object):
     def __init__(self, args, load_opt=True, load_scheduler=True):
         self.args = args
+        print(args)
         device = torch.device('cuda:{}'.format(args.local_rank))
         # create coarse IBRNet
         self.net_coarse = IBRNet(args,

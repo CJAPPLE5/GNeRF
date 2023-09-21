@@ -831,9 +831,11 @@ class Trainer(object):
                 alpha = outs['alpha'] # h w s
                 rgb = rgb.detach().cpu().numpy()
                 rgb = (rgb * 255).astype(np.uint8)
-
+                # norm depth
+                depth = (depth - depth.min()) / (depth.max() - depth.min())
                 depth = depth.detach().cpu().numpy()
                 depth = (depth * 255).astype(np.uint8)
+
                 cv2.imwrite(
                     os.path.join(save_path, f"{name}_{i:04d}_rgb_ibr.png"),
                     cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
@@ -853,7 +855,13 @@ class Trainer(object):
 
                 pred_depth = preds_depth[0].detach().cpu().numpy()
                 pred_depth = (pred_depth * 255).astype(np.uint8)
-
+                diff_img = np.abs(depth.astype(np.int8) - pred_depth.astype(np.int8)).astype(np.uint8)
+                diff_img_visual = cv2.cvtColor(diff_img, cv2.COLOR_GRAY2BGR)  # 转换为彩色图像
+                diff_img_visual = cv2.applyColorMap(diff_img_visual, cv2.COLORMAP_JET)  # 使用伪彩色表示差距
+                cv2.imwrite(
+                        os.path.join(save_path, f"{name}_{i:04d}_delta.png"),
+                        diff_img_visual
+                    )
                 if write_video:
                     all_preds.append(pred)
                     all_preds_depth.append(pred_depth)
