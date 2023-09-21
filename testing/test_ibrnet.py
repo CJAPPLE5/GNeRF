@@ -272,7 +272,6 @@ if __name__ == "__main__":
             metrics=metrics,
             use_checkpoint=opt.ckpt,
             eval_interval=30,
-            use_ibr_teacher=opt.use_ibr,
         )
 
         # also test

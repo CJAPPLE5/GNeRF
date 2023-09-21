@@ -393,7 +393,6 @@ class Trainer(object):
         use_checkpoint="latest",  # which ckpt to use at init time
         use_tensorboardX=True,  # whether to use tensorboard for logging
         scheduler_update_every_step=False,  # whether to call scheduler.step() after every train step
-        use_ibr_teacher=False,
     ):
         self.name = name
         self.opt = opt
@@ -527,7 +526,7 @@ class Trainer(object):
             )  # only support one text prompt now...
 
         # ibr teacher
-        self.use_ibr_teacher = use_ibr_teacher
+        self.use_ibr_teacher = opt.use_ibr
         if self.use_ibr_teacher:
             opt.distributed = False
             self.ibr_teacher_model = IBRTeacher(opt)
@@ -778,9 +777,8 @@ class Trainer(object):
 
         # init ibr feature map
         if self.use_ibr_teacher:
-            self.ibr_teacher_model.init_featuremaps(
-                train_loader._data.images.permute(0, 3, 1, 2).to(torch.float)
-            )
+            self.ibr_teacher_model.init(train_loader)
+            
 
         for epoch in range(self.epoch + 1, max_epochs + 1):
             self.epoch = epoch

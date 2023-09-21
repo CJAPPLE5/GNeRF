@@ -1,7 +1,7 @@
 #!/bin/bash  
 
-TEST_PREFIX="srun -p aigc-video --nodes 1 --ntasks-per-node 1 --cpus-per-task 2 --gres=gpu:1 --quotatype=auto"
-SUBMIT_PREFIX="srun -p aigc-video --nodes 1 --ntasks-per-node 1 --cpus-per-task 8 --gres=gpu:8"
+# TEST_PREFIX="srun -p aigc-video --nodes 1 --ntasks-per-node 1 --cpus-per-task 2 --gres=gpu:1 --quotatype=auto"
+# SUBMIT_PREFIX="srun -p aigc-video --nodes 1 --ntasks-per-node 1 --cpus-per-task 8 --gres=gpu:8"
 
 function train_raw(){
     EXP_NAME="raw"
@@ -53,9 +53,9 @@ function test_ibr(){
     TEST_SCENE="room"
     DOWNSCALE=4
     RESUME=0 
-    $TEST_PREFIX python testing/test_ibrnet.py ${DATA_BASE}/${TEST_SCENE} --workspace ./log/spaseview/${EXP_NAME}/${DATASET}/${TEST_SCENE}/view_${TRAIN_NUM}_ibr/${NETWORK} \
+    $TEST_PREFIX python testing/test_ibrnet.py data/nerf_llff_data/room/data_split/downscale_4/view_6 --workspace ./log/spaseview/${EXP_NAME}/${DATASET}/${TEST_SCENE}/view_${TRAIN_NUM}_ibr/${NETWORK} \
     -O --iters 2500 --num_rays 4096\
-    --ckpt log/spaseview/raw/nerf_llff_data/room/view_-1/ngp/checkpoints/ngp_ep0286.pth \
+    --ckpt log/spaseview/supervise_pixel/nerf_llff_data/room/view_9/ngp/checkpoints/ngp_ep0209.pth \
     --use_ibr
 
 }

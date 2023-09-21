@@ -244,7 +244,11 @@ if __name__ == "__main__":
                 # blender has gt, so evaluate it.
                 trainer.evaluate(test_loader)
 
-            trainer.test(test_loader, write_video=True)  # test and save video
+            if opt.use_ibr:
+                train_loader = NeRFDataset(opt, device=device, type="train").dataloader()
+            else:
+                train_loader = None
+            trainer.test(test_loader, train_loader, write_video=True)  # test and save video
 
             trainer.save_mesh(resolution=256, threshold=10)
 
