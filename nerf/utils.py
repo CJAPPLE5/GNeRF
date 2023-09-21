@@ -874,14 +874,14 @@ class Trainer(object):
             imageio.mimwrite(
                 os.path.join(save_path, f"{name}_rgb.mp4"),
                 all_preds,
-                fps=25,
+                fps=8,
                 quality=8,
                 macro_block_size=1,
             )
             imageio.mimwrite(
                 os.path.join(save_path, f"{name}_depth.mp4"),
                 all_preds_depth,
-                fps=25,
+                fps=8,
                 quality=8,
                 macro_block_size=1,
             )
