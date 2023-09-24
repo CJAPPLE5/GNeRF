@@ -53,7 +53,7 @@ function test_ibr(){
     TEST_SCENE="room"
     DOWNSCALE=4
     RESUME=0 
-    $TEST_PREFIX python testing/test_ibrnet.py data/nerf_llff_data/room/data_split/downscale_4/view_6 --workspace ./log/spaseview/${EXP_NAME}/${DATASET}/${TEST_SCENE}/view_${TRAIN_NUM}_ibr/${NETWORK} \
+    $TEST_PREFIX python testing/test_ibrnet.py data/nerf_llff_data/room/data_split/downscale_8/view_6 --workspace ./log/spaseview/${EXP_NAME}/${DATASET}/${TEST_SCENE}/view_${TRAIN_NUM}_ibr/${NETWORK} \
     -O --iters 2500 --num_rays 4096\
     --ckpt log/spaseview/supervise_pixel/nerf_llff_data/room/view_9/ngp/checkpoints/ngp_ep0209.pth \
     --use_ibr
