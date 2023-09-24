@@ -15,7 +15,7 @@ def add_argument(parser):
     parser.add_argument(
         "--config",
         is_config_file=True,
-        default="/home/liuyong/nerf/torch-ngp/IBRNet/configs/eval_llff.txt",
+        default="IBRNet/configs/eval_llff.txt",
         help="config file path",
     )
     parser.add_argument(
@@ -145,7 +145,7 @@ def add_argument(parser):
     parser.add_argument(
         "--ckpt_path",
         type=str,
-        default="/home/liuyong/nerf/torch-ngp/IBRNet/pretrained/model_255000.pth",
+        default="IBRNet/pretrained/model_255000.pth",
         help="specific weights npy file to reload for coarse network",
     )
     parser.add_argument(
